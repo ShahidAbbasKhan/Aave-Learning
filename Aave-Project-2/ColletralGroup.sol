@@ -24,6 +24,7 @@ contract CollateralGroup {
 	}
 
 	function withdraw() external {
+		require(isMember(msg.sender),"Not member");
 		uint256 balance = aDai.balanceOf(address(this));
 		aDai.approve(address(pool), balance);
 		for(uint i = 0; i < members.length; i++) {
@@ -32,6 +33,7 @@ contract CollateralGroup {
 	}
 
 	function borrow(address asset, uint amount) external {
+		require(isMember(msg.sender),"Not member");
 		pool.borrow(asset, amount, 1, 0, address(this));
 		(,,,,,uint healthFactor) = pool.getUserAccountData(address(this));
 		require(healthFactor >= 2e18, "Risk exist");
@@ -43,5 +45,14 @@ contract CollateralGroup {
 		IERC20(asset).approve(address(pool), amount);
 		pool.repay(asset,amount,1,address(this));
 		
+	}
+
+	function isMember(address _addr) private returns(bool) {
+		for(uint i = 0; i < members.length; i++) {
+			if(members[i] == _addr) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
