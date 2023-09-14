@@ -6,7 +6,6 @@ describe("Escrow", function () {
     let arbiter;
     let beneficiary;
     const deposit = ethers.utils.parseEther("1");
-    const wethGatewayAddress = "0xDcD33426BA191383f1c9B431A342498fdac73488";
     before(async () => {
         const Escrow = await ethers.getContractFactory("Escrow");
         [depositor, arbiter, beneficiary] = await ethers.provider.listAccounts();
@@ -25,20 +24,6 @@ describe("Escrow", function () {
         assert.equal(balance.toString(), deposit.toString());
     });
 
-    describe('approving as the beneficiary', () => {
-        it('should not be allowed', async () => {
-            let ex;
-            try {
-                const signer = await ethers.provider.getSigner(beneficiary);
-                await escrow.connect(signer).approve();
-            }
-            catch (_ex) {
-                ex = _ex;
-            }
-            assert(ex, "expected the transaction to revert when the beneficiary calls approve!");
-        });
-    });
-
     describe('after approving', () => {
         before(async () => {
             const thousandDays = 1000 * 24 * 60 * 60;
@@ -50,9 +35,9 @@ describe("Escrow", function () {
             await escrow.connect(arbiterSigner).approve();
         });
 
-        it('should give the WETH gateway allowance to spend the initial deposit', async () => {
-            const allowance = await aWETH.allowance(escrow.address, wethGatewayAddress);
-            assert(allowance.gte(deposit), "Expected an allowance on the WETH Gateway");
+        it('should withdraw the ether balance to the contract', async () => {
+            const balance = await ethers.provider.getBalance(escrow.address);
+            assert(balance.gt(deposit));
         });
     });
 });

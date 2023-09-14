@@ -25,6 +25,9 @@ contract Escrow {
         require(msg.sender == arbiter, "Not Arbiter");
         uint balance = aWETH.balanceOf(address(this));
         aWETH.approve(address(gateway), balance);
+        gateway.withdrawETH(type(uint256).max, address(this));
+        // withdrawing Eth from Aave Pool
 
     }
+    receive() external payable{} // will be able to receive ethers
 }
