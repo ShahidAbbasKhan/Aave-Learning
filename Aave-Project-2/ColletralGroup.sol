@@ -18,10 +18,17 @@ contract CollateralGroup {
 		for(uint i = 0; i < _members.length; i++) {
 			dai.transferFrom(members[i], address(this), depositAmount);
 		}
+		uint totalDeposit = _members.length * depositAmount;
+		dai.approve(address(pool), totalDeposit);
+		pool.deposit(address(dai), totalDeposit, address(this), 0);
 	}
 
 	function withdraw() external {
-		
+		uint256 balance = aDai.balanceOf(address(this));
+		aDai.approve(address(pool), balance);
+		for(uint i = 0; i < members.length; i++) {
+			pool.withdraw(address(dai), depositAmount, members[i]);
+		}
 	}
 
 	function borrow(address asset, uint amount) external {
