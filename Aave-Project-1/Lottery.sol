@@ -9,6 +9,7 @@ contract Lottery {
 	uint public drawing;
 	// the price of the ticket in DAI (100 DAI)
 	uint ticketPrice = 100e18;
+	mapping(address => bool) public hasTicket;
 
 	ILendingPool pool = ILendingPool(0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9);
 	IERC20 aDai = IERC20(0x028171bCA77440897B824Ca71D1c56caC55b68A3); 
@@ -19,7 +20,9 @@ contract Lottery {
 	}
 
 	function purchase() external {
-        
+		require(!hasTicket[msg.sender], "Already Purchased Ticket");
+        dai.transferFrom(msg.sender, address(this), ticketPrice);
+		hasTicket[msg.sender] = true;
 	}
 
 	event Winner(address);
