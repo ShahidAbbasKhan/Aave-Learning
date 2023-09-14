@@ -32,7 +32,11 @@ contract CollateralGroup {
 	}
 
 	function borrow(address asset, uint amount) external {
-		
+		//assest is the address that you want to borrow for that collateral is given, 1 is interestRate 
+		//(1 stable, 2 variable)
+
+		pool.borrow(asset, amount, 1, 0, address(this));
+		IERC20(asset).transfer(msg.sender, amount);
 	}
 
 	function repay(address asset, uint amount) external {
