@@ -26,12 +26,18 @@ contract Escrow {
         dai.transferFrom(msg.sender, address(this), _amount);
         dai.approve(address(pool), _amount);
         pool.deposit(address(dai), _amount, address(this), 0);
+        //aDAI will be minted to contract address
     }
 
     function approve() external {
         require(msg.sender == arbiter);
-        //withdrawing DAI
+        // pool.withdraw(address(dai), amountDeposited, address(this));
+        // dai.transfer(beneficiary, amountDeposited);
+        // uint256 balance = dai.balanceOf(address(this));
+        // dai.transfer(depositor,balance);
+
         pool.withdraw(address(dai), amountDeposited, beneficiary);
+        pool.withdraw(address(dai), type(uint).max, depositor);
 
     }
 }

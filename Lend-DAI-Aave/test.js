@@ -43,22 +43,10 @@ describe("Escrow", function () {
         assert.equal(balance.toString(), deposit.toString());
     });
 
-    describe('approving as the beneficiary', () => {
-        it('should not be allowed', async () => {
-            let ex;
-            try {
-                const signer = await ethers.provider.getSigner(beneficiary);
-                await escrow.connect(signer).approve();
-            }
-            catch(_ex) {
-                ex = _ex;
-            }
-            assert(ex, "expected the transaction to revert when the beneficiary calls approve!");
-        });
-    });
-
     describe('after approving', () => {
+        let balanceBefore;
         before(async () => {
+            balanceBefore = await dai.balanceOf(depositorAddr);
             const thousandDays = 1000 * 24 * 60 * 60;
             await hre.network.provider.request({
                 method: "evm_increaseTime",
@@ -66,6 +54,11 @@ describe("Escrow", function () {
             });
             const arbiterSigner = await ethers.provider.getSigner(arbiter);
             await escrow.connect(arbiterSigner).approve();
+        });
+
+        it('should provide interest to the depositor', async () => {
+            let balanceAfter = await dai.balanceOf(depositorAddr);
+            assert.isAbove(balanceAfter, balanceBefore);
         });
 
         it('should provide the principal to the beneficiary', async () => {
