@@ -21,8 +21,10 @@ contract Escrow {
         beneficiary = _beneficiary;
         depositor = msg.sender;
 
-        // TODO: transfer dai to this contract
+        // transfer dai to this contract, approving dai to pool and depositing 
         dai.transferFrom(msg.sender, address(this), _amount);
+        dai.approve(address(pool), _amount);
+        pool.deposit(address(dai), _amount, address(this), 0);
     }
 
     function approve() external view {

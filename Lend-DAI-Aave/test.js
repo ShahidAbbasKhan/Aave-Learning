@@ -20,11 +20,11 @@ describe("Escrow", function () {
         dai = await ethers.getContractAt("IERC20", "0x6b175474e89094c44da98b954eedeac495271d0f", depositorSigner);
         aDai = await ethers.getContractAt("IERC20", "0x028171bCA77440897B824Ca71D1c56caC55b68A3");
 
-        const escrowAddress = ethers.utils.getContractAddress({
-            from: depositorAddr,
+        const escrowAddress = ethers.utils.getContractAddress({ 
+            from: depositorAddr, 
             nonce: (await ethers.provider.getTransactionCount(depositorAddr)) + 1,
         });
-
+        
         await dai.approve(escrowAddress, deposit);
 
         [arbiter, beneficiary] = await ethers.provider.listAccounts();
@@ -33,8 +33,13 @@ describe("Escrow", function () {
         await escrow.deployed();
     });
 
-    it("should hold DAI", async function () {
+    it("should not hold DAI", async function () {
         const balance = await dai.balanceOf(escrow.address);
+        assert.equal(balance.toString(), "0");
+    });
+
+    it("should hold aDAI", async function () {
+        const balance = await aDai.balanceOf(escrow.address);
         assert.equal(balance.toString(), deposit.toString());
     });
 });
