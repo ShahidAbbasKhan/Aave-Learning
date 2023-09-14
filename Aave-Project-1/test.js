@@ -35,7 +35,27 @@ describe('Lottery', function () {
 
         it('should have an aDai balance', async () => {
             const balance = await aDai.balanceOf(lottery.address);
-            assert(balance.gte(ticketPrice.mul(purchasers.length)), "expected the contract to have aDai for each purchase");
+            assert(balance.gte(ticketPrice.mul(purchasers.length)));
+        });
+
+        describe('after picking a winner', () => {
+            let tx;
+            before(async () => {
+                const unixSeconds = Date.now() / 1000;
+                const oneWeek = 8 * 24 * 60 * 60;
+                await hre.network.provider.request({
+                    method: "evm_setNextBlockTimestamp",
+                    params: [unixSeconds + oneWeek]
+                });
+                await hre.network.provider.request({ method: "evm_mine" });
+                let response = await lottery.pickWinner();
+                tx = await response.wait();
+            });
+
+            it('should emit an event', async () => {
+                const winnerEvent = tx.events.find(x => x.event === "Winner");
+                assert(winnerEvent, "Expected a winner event to be emitted");
+            });
         });
     });
 });
