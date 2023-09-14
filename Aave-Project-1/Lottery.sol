@@ -22,6 +22,7 @@ contract Lottery {
 	function purchase() external {
 		require(!hasTicket[msg.sender], "Already Purchased Ticket");
         dai.transferFrom(msg.sender, address(this), ticketPrice);
+		dai.approve(address(pool), ticketPrice);
 		pool.deposit(address(dai), ticketPrice, address(this), 0);
 		hasTicket[msg.sender] = true;
 	}
