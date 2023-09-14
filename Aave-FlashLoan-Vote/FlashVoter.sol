@@ -39,6 +39,8 @@ contract FlashVoter {
         uint256[] calldata premiums,
         address, bytes calldata
     ) external returns(bool) {
-        
+        uint owed = amounts[0] + premiums[0]; // premiums are the fee for loan
+        DAI.approve(address(pool), owed);
+        return true;
     }
 }
