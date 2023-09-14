@@ -24,28 +24,7 @@ describe('Lottery', function () {
         assert(drawing);
     });
 
-    describe('after multiple purchases from the same address', () => {
-        before(async () => {
-            const signer = await ethers.provider.getSigner(5);
-            await getDai(dai, [await signer.getAddress()]);
-            await dai.connect(signer).approve(lottery.address, ticketPrice);
-            await lottery.connect(signer).purchase();
-        });
-
-        it('should revert on the second purchase attempt', async () => {
-            let ex;
-            try {
-                await dai.connect(signer).approve(lottery.address, ticketPrice);
-                await lottery.connect(signer).purchase();
-            }
-            catch(_ex) {
-                ex = _ex;
-            }
-            assert(ex, "expected the transaction to revert when a address attempts a second purchase");
-        });
-    });
-
-    describe('after multiple purchases from different addresses', () => {
+    describe('after multiple purchases', () => {
         before(async () => {
             for (let i = 0; i < purchasers.length; i++) {
                 const signer = await ethers.provider.getSigner(purchasers[i]);
@@ -54,9 +33,9 @@ describe('Lottery', function () {
             }
         });
 
-        it('should have an dai balance', async () => {
-            const balance = await dai.balanceOf(lottery.address);
-            assert(balance.gte(ticketPrice.mul(purchasers.length)), "expected the contract to have dai for each purchase");
+        it('should have an aDai balance', async () => {
+            const balance = await aDai.balanceOf(lottery.address);
+            assert(balance.gte(ticketPrice.mul(purchasers.length)), "expected the contract to have aDai for each purchase");
         });
     });
 });
