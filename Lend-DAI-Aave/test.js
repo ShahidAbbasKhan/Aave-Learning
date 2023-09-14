@@ -20,11 +20,11 @@ describe("Escrow", function () {
         dai = await ethers.getContractAt("IERC20", "0x6b175474e89094c44da98b954eedeac495271d0f", depositorSigner);
         aDai = await ethers.getContractAt("IERC20", "0x028171bCA77440897B824Ca71D1c56caC55b68A3");
 
-        const escrowAddress = ethers.utils.getContractAddress({ 
-            from: depositorAddr, 
+        const escrowAddress = ethers.utils.getContractAddress({
+            from: depositorAddr,
             nonce: (await ethers.provider.getTransactionCount(depositorAddr)) + 1,
         });
-        
+
         await dai.approve(escrowAddress, deposit);
 
         [arbiter, beneficiary] = await ethers.provider.listAccounts();
@@ -41,5 +41,36 @@ describe("Escrow", function () {
     it("should hold aDAI", async function () {
         const balance = await aDai.balanceOf(escrow.address);
         assert.equal(balance.toString(), deposit.toString());
+    });
+
+    describe('approving as the beneficiary', () => {
+        it('should not be allowed', async () => {
+            let ex;
+            try {
+                const signer = await ethers.provider.getSigner(beneficiary);
+                await escrow.connect(signer).approve();
+            }
+            catch(_ex) {
+                ex = _ex;
+            }
+            assert(ex, "expected the transaction to revert when the beneficiary calls approve!");
+        });
+    });
+
+    describe('after approving', () => {
+        before(async () => {
+            const thousandDays = 1000 * 24 * 60 * 60;
+            await hre.network.provider.request({
+                method: "evm_increaseTime",
+                params: [thousandDays]
+            });
+            const arbiterSigner = await ethers.provider.getSigner(arbiter);
+            await escrow.connect(arbiterSigner).approve();
+        });
+
+        it('should provide the principal to the beneficiary', async () => {
+            const balance = await dai.balanceOf(beneficiary);
+            assert.equal(balance.toString(), deposit.toString());
+        });
     });
 });

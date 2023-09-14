@@ -8,6 +8,7 @@ contract Escrow {
     address arbiter;
     address depositor;
     address beneficiary;
+    uint256 amountDeposited;
 
     // the mainnet AAVE v2 lending pool
     ILendingPool pool = ILendingPool(0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9);
@@ -20,15 +21,17 @@ contract Escrow {
         arbiter = _arbiter;
         beneficiary = _beneficiary;
         depositor = msg.sender;
-
-        // transfer dai to this contract, approving dai to pool and depositing 
+        amountDeposited = _amount;
+        // TODO: transfer dai to this contract
         dai.transferFrom(msg.sender, address(this), _amount);
         dai.approve(address(pool), _amount);
         pool.deposit(address(dai), _amount, address(this), 0);
     }
 
-    function approve() external view {
+    function approve() external {
         require(msg.sender == arbiter);
+        //withdrawing DAI
+        pool.withdraw(address(dai), amountDeposited, beneficiary);
 
     }
 }
