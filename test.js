@@ -5,6 +5,7 @@ describe("Escrow", function () {
     let aWETH;
     let arbiter;
     let beneficiary;
+    let depositor;
     const deposit = ethers.utils.parseEther("1");
     before(async () => {
         const Escrow = await ethers.getContractFactory("Escrow");
@@ -25,7 +26,11 @@ describe("Escrow", function () {
     });
 
     describe('after approving', () => {
+        let beneficiaryBalanceBefore;
+        let depositorBalanceBefore;
         before(async () => {
+            beneficiaryBalanceBefore = await ethers.provider.getBalance(beneficiary);
+            depositorBalanceBefore = await ethers.provider.getBalance(depositor);
             const thousandDays = 1000 * 24 * 60 * 60;
             await hre.network.provider.request({
                 method: "evm_increaseTime",
@@ -35,9 +40,16 @@ describe("Escrow", function () {
             await escrow.connect(arbiterSigner).approve();
         });
 
-        it('should withdraw the ether balance to the contract', async () => {
-            const balance = await ethers.provider.getBalance(escrow.address);
-            assert(balance.gt(deposit));
+        it('should provide the principal to the beneficiary', async () => {
+            const balanceAfter = await ethers.provider.getBalance(beneficiary);
+            const diff = balanceAfter.sub(beneficiaryBalanceBefore);
+            assert.equal(diff.toString(), deposit.toString());
+        });
+
+        it('should transfer interest to the depositor', async () => {
+            const balanceAfter = await ethers.provider.getBalance(depositor);
+            const diff = balanceAfter.sub(depositorBalanceBefore);
+            assert(diff.gt(0), "expected interest to be sent to the original depositor");
         });
     });
 });
